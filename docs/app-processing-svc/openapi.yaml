@@ -1,1 +1,121 @@
+openapi: 3.0.3
+info:
+  title: Application Processing Service API
+  version: 1.2.0
+  description: |
+    API для приёма и обработки заявок от физических и юридических лиц.
+servers:
+  - url: https://api.bank.example/v1
+    description: Production
+  - url: https://api.staging.bank.example/v1
+    description: Staging
 
+paths:
+  /applications:
+    post:
+      summary: Создать новую заявку
+      operationId: createApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateRequest'
+      responses:
+        '201':
+          description: Заявка успешно создана
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /applications/550e8400-e29b-41d4-a716-446655440000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Нарушение бизнес-правил (например, дубль по clientId)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ApplicationCreateRequest:
+      type: object
+      required: [clientId, type, data]
+      properties:
+        clientId:
+          type: string
+          description: Идентификатор клиента в системе банка
+          example: "cust-7890"
+        type:
+          type: string
+          enum: [INDIVIDUAL, LEGAL_ENTITY]
+          example: INDIVIDUAL
+        data:
+          type: object
+          description: Данные заявки (структура зависит от типа)
+          example:
+            firstName: "Алексей"
+            lastName: "Иванов"
+            email: "a@example.com"
+
+    ApplicationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        clientId:
+          type: string
+          example: "cust-7890"
+        type:
+          type: string
+          enum: [INDIVIDUAL, LEGAL_ENTITY]
+        status:
+          type: string
+          enum: [DRAFT, SUBMITTED]
+          example: SUBMITTED
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-12-14T10:00:00Z"
+        _links:
+          type: object
+          properties:
+            self:
+              type: object
+              properties:
+                href:
+                  type: string
+                  example: "/applications/550e8400-e29b-41d4-a716-446655440000"
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "Поле 'email' имеет неверный формат"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              issue:
+                type: string
+                example: "must be a valid email"
