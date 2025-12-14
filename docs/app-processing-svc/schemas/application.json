@@ -1,1 +1,39 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bank.example/schemas/application.json",
+  "title": "Application",
+  "description": "Заявка клиента на услугу",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Уникальный идентификатор заявки"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Идентификатор клиента в системе банка"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["INDIVIDUAL", "LEGAL_ENTITY"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "REJECTED", "APPROVED"]
+    },
+    "data": {
+      "type": "object",
+      "description": "Данные заявки (зависят от типа клиента)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "clientId", "type", "status", "data", "createdAt"]
+}
