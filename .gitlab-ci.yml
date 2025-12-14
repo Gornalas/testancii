@@ -1,0 +1,36 @@
+# .gitlab-ci.yml
+
+stages:
+  - build-docs
+
+build and publish docs:
+  stage: build-docs
+  image: ruby:3.2
+  before_script:
+    - gem install asciidoctor
+    - gem install asciidoctor-diagram
+  script:
+    - mkdir -p public
+    - asciidoctor \
+        -D public/ \
+        -a imagesdir=./images \
+        -a allow-uri-read \
+        -r asciidoctor-diagram \
+        docs/microservice-spec.adoc
+    # Опционально: скопировать схемы и openapi для reference
+    - mkdir -p public/schemas public/api
+    - cp -r app-processing-svc/schemas/*.json public/schemas/ 2>/dev/null || true
+    - cp app-processing-svc/openapi.yaml public/api/ 2>/dev/null || true
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+  only:
+    - main
+    - master
+  pages:
+    script:
+      - echo "GitLab Pages уже настроен через artifacts в public/"
+    artifacts:
+      paths:
+        - public
